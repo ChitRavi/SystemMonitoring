@@ -38,7 +38,7 @@ class MonitoringApp:
 
             # Check if any alarms are triggered
             self.check_alarms()
-            time.sleep(20)  
+            time.sleep(30)  
 # to start the monitoring of disc memory and cpu usage. 
     def start_monitoring(self):
         if not self.monitoring_active:
