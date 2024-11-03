@@ -1,13 +1,13 @@
 import time
 import psutil
-import threading #To run multiply functions simultaneously
+import threading #To run multiple functions simultaneously
 import json #To store alarm details in a file &reload it when we run the program
-import os
-from sendgrid import SendGridAPIClient # type: ignore
-from sendgrid.helpers.mail import Mail # type: ignore
-
+import os 
+from sendgrid import SendGridAPIClient 
+from sendgrid.helpers.mail import Mail 
+#Constructor
 class MonitoringApp:
-    def __init__(self, alarm_file="alarms.json"):
+    def __init__(self, alarm_file="alarms.json"): #To access and manipulate variables
         self.monitoring_data = {"cpu_usage": None, "memory_usage": None, "disk_usage": None}
         self.alarm_levels = {"cpu": [], "memory": [], "disk": []}
         self.monitoring_active = False
@@ -38,7 +38,7 @@ class MonitoringApp:
 
             # Check if any alarms are triggered
             self.check_alarms()
-            time.sleep(30)  
+            time.sleep(5)  
 # to start the monitoring of disc memory and cpu usage. 
     def start_monitoring(self):
         if not self.monitoring_active:
@@ -87,16 +87,32 @@ class MonitoringApp:
         except Exception as e:
             print(f"Error sending email: {e}")
 # displays the result of cpu dis and memory usage.
+
     def list_active_monitoring(self):
-        if self.monitoring_active:
+        # Event to control the loop
+        stop_event = threading.Event()
+
+        def wait_for_enter():
+            input("Press Enter to stop...")
+            stop_event.set()  # Signal to stop the loop
+
+        # Start the thread that waits for user input
+        threading.Thread(target=wait_for_enter, daemon=True).start()
+
+        while self.monitoring_active and not stop_event.is_set():
             print("\n--- Active Monitoring Data ---")
             print(f"CPU Usage: {self.monitoring_data['cpu_usage']}%")
             print(f"Memory Usage: {self.monitoring_data['memory_usage']}%")
             print(f"Disk Usage: {self.monitoring_data['disk_usage']}%")
-        else:
-            print("No active monitoring session. Please start monitoring first.")
-        input("\nPress any key to return to the main menu...")
-# Displays different alarms options
+            time.sleep(5)
+        else :
+            if stop_event.is_set():
+                 input("\nPress any key to return to the main menu...")
+            else :
+                print("No active monitoring session. Please start monitoring first.")
+               
+
+# Displays different alarms options. the created alarms gets saved in json file
     def create_alarms(self):
         while True:
             print("\n--- Configure Alarms ---\n1. CPU Usage Alarm\n 2. Memory Usage Alarm \n3. Disk Usage Alarm \n4. Back to Main Menu")
@@ -176,7 +192,7 @@ class MonitoringApp:
 # quit the application
     def exit_application(self):
         self.monitoring_active = False
-        print("Exiting the application. Goodbye!")
+        print("Exiting the application.")
         exit()
 # Main menu that displays all the options to the user
     def main_menu(self):
@@ -200,5 +216,6 @@ class MonitoringApp:
                 print("Invalid option, please try again.")
 #  default code that gets executed first.
 if __name__ == "__main__":
+    
     app = MonitoringApp()
     app.main_menu()
